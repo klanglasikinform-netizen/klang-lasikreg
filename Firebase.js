@@ -5,7 +5,7 @@ service cloud.firestore {
     // แก้อีเมลให้ตรงกับ ADMIN_EMAILS ในโค้ด (ตัวพิมพ์เล็กทั้งหมด)
     function isAdmin() {
       return request.auth != null
-        && request.auth.token.email.lower() in ['admin@lasik-hospital.com'];
+        && request.auth.token.email.lower() in ['klanglasik.inform@gmail.com.com'];
     }
 
     match /doctors/{id}    { allow read: if true; allow write: if isAdmin(); }
