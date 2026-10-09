@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบนัดหมายเพื่อทำเลสิก ศูนย์เลสิกโรงพยาบาลกลาง</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#0f4c81;--primary-2:#1769aa;--accent:#14b8a6;--bg:#f2f6fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--border:#e2e8f0;--ok:#16a34a;--warn:#d97706;--err:#dc2626;--radius:18px;--shadow:0 10px 30px rgba(15,76,129,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;font-size:17px;line-height:1.6;color:var(--text);background:linear-gradient(180deg,#e3eefa 0%,var(--bg) 340px);min-height:100vh}
+h1,h2,h3,.btn,.tab{font-family:'Prompt',sans-serif}
+.topbar{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;box-shadow:0 4px 20px rgba(15,76,129,.25)}
+.topbar-inner{max-width:1100px;margin:auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:14px;cursor:pointer}
+.logo{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:28px}
+.brand h1{font-size:1.25rem;font-weight:600;line-height:1.3}
+.brand p{font-size:.95rem;opacity:.85}
+.conn{font-size:.85rem;background:rgba(255,255,255,.15);padding:6px 14px;border-radius:999px;white-space:nowrap}
+.conn .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#fbbf24;margin-right:7px;vertical-align:middle}
+.conn.on .dot{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.3)}
+.conn.off .dot{background:#f87171}
+.container{max-width:1100px;margin:32px auto;padding:0 20px}
+.view{display:none;animation:fade .3s}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;border:1px solid var(--border);margin-bottom:22px}
+.setup{border-left:6px solid var(--err);display:none}
+.setup h3{color:var(--err);margin-bottom:6px}
+.page-title{font-size:1.6rem;color:var(--primary);margin-bottom:2px}
+.page-sub{color:var(--muted);margin-bottom:22px}
+.hero{text-align:center;padding:20px 0 34px}
+.hero h2{font-size:2rem;color:var(--primary);line-height:1.35}
+.hero p{color:var(--muted);font-size:1.1rem;margin-top:6px}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:26px;max-width:820px;margin:auto}
+.home-card{background:#fff;border-radius:22px;border:2px solid var(--border);box-shadow:var(--shadow);cursor:pointer;text-align:center;padding:44px 28px;transition:.25s}
+.home-card:hover{transform:translateY(-5px);border-color:var(--accent)}
+.home-card .icon{font-size:60px}
+.home-card h3{font-size:1.45rem;color:var(--primary);margin:12px 0 6px}
+.home-card p{color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:12px;padding:12px 22px;font-size:1rem;font-weight:500;cursor:pointer;background:var(--primary);color:#fff;transition:.2s}
+.btn:hover{filter:brightness(1.12)}
+.btn.ghost{background:#fff;color:var(--primary);border:1.5px solid var(--border)}
+.btn.light{background:#eef2f7;color:var(--text)}
+.btn.ok{background:var(--ok)}.btn.err{background:var(--err)}.btn.accent{background:var(--accent)}
+.btn.sm{padding:6px 12px;font-size:.86rem;border-radius:9px}
+.btn.block{width:100%;padding:14px;font-size:1.08rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.back{margin-bottom:18px}
+.tabs{display:flex;gap:8px;background:#e6eef8;padding:6px;border-radius:14px;margin-bottom:24px;flex-wrap:wrap}
+.tab{flex:1;min-width:170px;padding:12px 16px;border:none;background:transparent;border-radius:10px;font-size:1.02rem;cursor:pointer;color:var(--muted);font-weight:500}
+.tab.active{background:#fff;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.tab-panel{display:none}.tab-panel.active{display:block;animation:fade .25s}
+.slot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.slot-grid.single{grid-template-columns:minmax(230px,420px)}
+.slot-card{border:2px solid var(--border);border-radius:16px;padding:22px;cursor:pointer;background:#fff;text-align:left;transition:.2s;font-family:inherit;font-size:1rem;color:var(--text)}
+.slot-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow)}
+.slot-card .pill{display:inline-block;font-size:.8rem;padding:3px 10px;border-radius:999px;margin-bottom:10px;font-weight:600}
+.slot-card .time{font-family:Prompt;font-size:2rem;font-weight:600;color:var(--primary);line-height:1.2}
+.slot-card .label{font-weight:600;font-size:1.05rem;margin-top:4px}
+.slot-card .days{color:var(--muted);font-size:.92rem}
+.s-combo{background:#ccfbf1;color:#115e59}
+.note{background:#fff7ed;border-left:4px solid var(--warn);padding:12px 16px;border-radius:10px;margin:20px 0 0;font-size:.95rem}
+.summary{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.chip{background:#eaf3fc;color:var(--primary);padding:6px 14px;border-radius:999px;font-size:.92rem;font-weight:500}
+.chip.live{background:#dcfce7;color:#166534}
+.cal-head-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
+.cal-head-bar h3{font-size:1.3rem;color:var(--primary);text-align:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-head{text-align:center;font-weight:600;color:var(--muted);padding:6px 0;font-size:.95rem}
+.cal-head.sun{color:var(--err)}
+.cal-cell{min-height:76px;border-radius:12px;border:1px solid var(--border);padding:6px 8px;display:flex;flex-direction:column;background:#fff;font-size:.9rem;transition:.15s;overflow:hidden}
+.cal-cell.empty{border:none;background:transparent}
+.cal-cell .num{font-weight:600;font-size:1.05rem}
+.cal-cell .sub{font-size:.78rem;margin-top:auto}
+.cal-cell.avail{background:#ecfdf5;border-color:#86efac;cursor:pointer}
+.cal-cell.avail:hover{background:#d1fae5;transform:scale(1.04)}
+.cal-cell.avail .sub{color:var(--ok);font-weight:600}
+.cal-cell.disabled{color:#b6bfcc;background:#fafbfc}
+.cal-cell.closed{background:repeating-linear-gradient(45deg,#f8fafc,#f8fafc 6px,#eef2f6 6px,#eef2f6 12px);color:#aab4c2}
+.cal-cell.today{outline:2px solid var(--primary-2)}
+.cal-cell.admin{cursor:pointer;min-height:104px;gap:3px}
+.cal-cell.admin:hover{border-color:var(--primary-2);box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.tag{font-size:.72rem;padding:2px 6px;border-radius:6px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-in{background:#dbeafe;color:#1e40af}.s-out{background:#fef3c7;color:#92400e}.s-sat{background:#ede9fe;color:#5b21b6}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:.88rem;color:var(--muted)}
+.legend span::before{content:'';display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:middle;background:var(--c);border:1px solid rgba(0,0,0,.08)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.field{margin-bottom:18px}
+.field label{display:block;font-weight:600;margin-bottom:6px;font-size:.98rem}
+.field input,.field select{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:11px;font-size:1rem;font-family:inherit;background:#fff}
+.field input:focus,.field select:focus{outline:none;border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(23,105,170,.15)}
+.field input[readonly]{background:#f1f5f9;color:var(--primary);font-weight:600}
+.req{color:var(--err)}
+.section-label{font-family:Prompt;color:var(--primary);font-size:1.1rem;margin:6px 0 14px;padding-bottom:8px;border-bottom:1px dashed var(--border)}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.modal-backdrop.show{display:flex}
+.modal-box{background:#fff;border-radius:20px;padding:28px;max-width:580px;width:100%;max-height:90vh;overflow:auto;animation:pop .25s}
+.modal-box h3{font-size:1.35rem;color:var(--primary);margin-bottom:4px}
+.modal-box .muted{color:var(--muted)}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.choice{border:2px solid var(--border);border-radius:16px;padding:22px 14px;background:#fff;cursor:pointer;font-family:Prompt;font-size:1.1rem;font-weight:600;color:var(--primary);display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;transition:.2s}
+.choice small{font-family:Sarabun;font-weight:400;color:var(--muted);font-size:.86rem}
+.choice:hover{border-color:var(--accent);background:#f0fdfa}
+.choice .ic{font-size:38px}
+.doc-list{display:flex;flex-direction:column;gap:10px;margin:18px 0}
+.doc-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;background:#fff;font-family:inherit;font-size:1.02rem;text-align:left;transition:.2s}
+.doc-item:hover:not(:disabled){border-color:var(--accent);background:#f0fdfa}
+.doc-item:disabled{opacity:.5;cursor:not-allowed}
+.doc-item small{color:var(--muted)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
+.success{text-align:center}
+.success .ic{width:84px;height:84px;border-radius:50%;background:#dcfce7;color:var(--ok);font-size:46px;display:grid;place-items:center;margin:0 auto 16px}
+.success p{font-size:1.15rem;margin:10px 0 22px;line-height:1.7}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px}
+.stat{background:#fff;border-radius:14px;padding:14px 18px;border:1px solid var(--border);border-left:5px solid var(--c)}
+.stat .n{font-size:1.8rem;font-weight:600;font-family:Prompt;color:var(--c);line-height:1.2}
+.stat .t{color:var(--muted);font-size:.92rem}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.toolbar input,.toolbar select{padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:.95rem;font-family:inherit}
+.toolbar input{flex:1;min-width:200px}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:.93rem;min-width:1000px}
+th{background:#f1f6fc;color:var(--primary);text-align:left;padding:12px;font-family:Prompt;font-weight:500;white-space:nowrap}
+td{padding:12px;border-top:1px solid var(--border);vertical-align:top}
+td small{color:var(--muted)}
+tr:hover td{background:#fafcff}
+tr.flash td{animation:flash 2.5s}
+@keyframes flash{0%,40%{background:#fef9c3}100%{background:transparent}}
+.status{display:inline-block;padding:4px 12px;border-radius:999px;font-size:.82rem;font-weight:600;white-space:nowrap}
+.st-pending{background:#fef3c7;color:#92400e}.st-contacted{background:#dcfce7;color:#166534}.st-unreachable{background:#fee2e2;color:#991b1b}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.bulk{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.daychk{display:flex;gap:6px;flex-wrap:wrap}
+.daychk label{display:flex;align-items:center;gap:4px;padding:8px 12px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;font-weight:500;font-size:.95rem;margin:0}
+.daychk input{width:auto}
+.chk-list label{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;font-weight:500}
+.chk-list input{width:18px;height:18px}
+.doc-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px}
+.seed{background:#eff6ff;border:1.5px dashed #93c5fd;border-radius:14px;padding:18px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:#0f172a;color:#fff;padding:12px 22px;border-radius:12px;transition:.3s;z-index:60;font-size:.95rem;max-width:90vw}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.empty-state{text-align:center;padding:40px;color:var(--muted)}
+.admin-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.admin-user{color:var(--muted);font-size:.92rem}
+.login-box{max-width:420px;margin:30px auto}
+footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px 0 40px}
+@media(max-width:640px){
+ body{font-size:16px}.card{padding:18px}.row{grid-template-columns:1fr}.choice-grid{grid-template-columns:1fr}
+ .slot-grid.single{grid-template-columns:1fr}
+ .topbar-inner{flex-wrap:wrap}
+ .cal-grid{gap:3px}.cal-cell{min-height:54px;padding:4px;border-radius:8px}.cal-cell.admin{min-height:84px}
+ .cal-cell .sub{font-size:.65rem}.tag{font-size:.6rem;padding:1px 3px}
+ .brand h1{font-size:1.02rem}.brand p{font-size:.85rem}.hero h2{font-size:1.5rem}.page-title{font-size:1.35rem}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand" onclick="go('home')">
+      <div class="logo">👁️</div>
+      <div>
+        <h1>ระบบนัดหมายเพื่อทำเลสิก</h1>
+        <p>ศูนย์เลสิกโรงพยาบาลกลาง</p>
+      </div>
+    </div>
+    <span class="conn" id="conn"><span class="dot"></span><span id="connText">กำลังเชื่อมต่อ...</span></span>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="card setup" id="setupWarn">
+    <h3>⚠️ ยังไม่ได้ตั้งค่า Firebase</h3>
+    <p>กรุณาใส่ค่า <b>firebaseConfig</b> และ <b>ADMIN_EMAILS</b> ในโค้ดส่วน &lt;script&gt; ก่อนใช้งาน</p>
+  </div>
+
+  <!-- ===== หน้าหลัก ===== -->
+  <section id="view-home" class="view active">
+    <div class="hero">
+      <h2>ระบบนัดหมายเพื่อทำเลสิก<br>ศูนย์เลสิกโรงพยาบาลกลาง</h2>
+      <p>กรุณาเลือกเมนูที่ต้องการ</p>
+    </div>
+    <div class="home-grid">
+      <div class="home-card" onclick="startRegister()">
+        <div class="icon">📝</div>
+        <h3>ลงทะเบียนนัดหมาย</h3>
+        <p>สำหรับผู้ที่ต้องการนัดตรวจตา<br>หรือตรวจเช้า-ผ่าตัดเย็น</p>
+      </div>
+      <div class="home-card" onclick="openAdmin()">
+        <div class="icon">🛡️</div>
+        <h3>แอดมิน</h3>
+        <p>จัดการข้อมูลนัดหมาย<br>และตารางแพทย์ออกตรวจ</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ลงทะเบียน ===== -->
+  <section id="view-register" class="view">
+    <button class="btn ghost back" onclick="go('home')">← กลับหน้าหลัก</button>
+    <div class="card">
+      <h2 class="page-title">ลงทะเบียนนัดหมาย</h2>
+      <p class="page-sub">เลือกลักษณะความต้องการและช่วงเวลาที่สะดวก</p>
+
+      <div class="tabs">
+        <button class="tab active" id="tabBtn-exam" onclick="switchRegTab('exam')">🔍 ตรวจอย่างเดียว</button>
+        <button class="tab" id="tabBtn-combo" onclick="switchRegTab('combo')">⚕️ ตรวจเช้า-ผ่าตัดเย็น</button>
+      </div>
+
+      <div class="tab-panel active" id="panel-exam">
+        <div class="slot-grid">
+          <button class="slot-card" onclick="pickSlot('in730')">
+            <span class="pill s-in">ในเวลาราชการ</span>
+            <div class="time">07.30 น.</div>
+            <div class="label">ในเวลาราชการ</div>
+            <div class="days">วันจันทร์ - วันศุกร์</div>
+          </button>
+          <button class="slot-card" onclick="pickSlot('out1400')">
+            <span class="pill s-out">นอกเวลาราชการ</span>
+            <div class="time">14.00 น.</div>
+            <div class="label">นอกเวลาราชการ</div>
+            <div class="days">วันจันทร์ - วันศุกร์</div>
+          </button>
+          <button class="slot-card" onclick="pickSlot('sat730')">
+            <span class="pill s-sat">วันเสาร์</span>
+            <div class="time">07.30 น.</div>
+            <div class="label">วันเสาร์ (นอกเวลาราชการ)</div>
+            <div class="days">เฉพาะวันเสาร์</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="panel-combo">
+        <div class="slot-grid single">
+          <button class="slot-card" onclick="pickCombo()">
+            <span class="pill s-combo">ตรวจเช้า-ผ่าตัดเย็น</span>
+            <div class="time">07.30 น.</div>
+            <div class="label">ตรวจตาช่วงเช้า แล้วผ่าตัดช่วงเย็นวันเดียวกัน</div>
+            <div class="days">วันจันทร์ - วันศุกร์</div>
+          </button>
+        </div>
+        <div class="note">ℹ️ เข้ารับการตรวจเวลา <b>07.30 น.</b> และผ่าตัดช่วงเย็นตามตารางแพทย์นอกเวลาราชการ 14.00 น. เลือก <b>ระบุแพทย์</b> หรือ <b>ไม่ระบุแพทย์</b> ได้</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ปฏิทินผู้ป่วย ===== -->
+  <section id="view-calendar" class="view">
+    <button class="btn ghost back" onclick="go('register')">← ย้อนกลับ</button>
+    <div class="card">
+      <h2 class="page-title">เลือกวันที่สะดวก</h2>
+      <p class="page-sub">กดเลือกวันที่เป็นสีเขียว (วันที่ว่างให้นัดหมาย)</p>
+      <div class="summary" id="calSummary"></div>
+      <div class="cal-head-bar">
+        <button class="btn light sm" onclick="patMonth(-1)">‹ เดือนก่อน</button>
+        <h3 id="patCalTitle"></h3>
+        <button class="btn light sm" onclick="patMonth(1)">เดือนถัดไป ›</button>
+      </div>
+      <div id="patCal"></div>
+      <div class="legend">
+        <span style="--c:#ecfdf5">ว่าง เลือกได้</span>
+        <span style="--c:#fafbfc">ไม่มีตาราง/ผ่านมาแล้ว</span>
+        <span style="--c:#eef2f6">วันอาทิตย์ปิด</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ฟอร์ม ===== -->
+  <section id="view-form" class="view">
+    <button class="btn ghost back" onclick="go('calendar')">← ย้อนกลับไปเลือกวัน</button>
+    <div class="card" style="max-width:760px;margin:auto">
+      <h2 class="page-title">กรอกข้อมูลเพื่อลงนัดหมาย</h2>
+      <p class="page-sub">กรุณากรอกข้อมูลให้ครบถ้วน (<span class="req">*</span> จำเป็นต้องกรอก)</p>
+      <form id="apptForm" onsubmit="submitForm(event)">
+        <div class="section-label">ข้อมูลผู้ลงทะเบียน</div>
+        <div class="field">
+          <label>ชื่อ-สกุล <span class="req">*</span></label>
+          <input id="fName" required maxlength="150" placeholder="เช่น นายสมศักดิ์ ตาดี">
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>อายุ (ปี) <span class="req">*</span></label>
+            <input id="fAge" type="number" min="1" max="120" required placeholder="เช่น 28">
+          </div>
+          <div class="field">
+            <label>เบอร์โทรศัพท์ติดต่อกลับ <span class="req">*</span></label>
+            <input id="fPhone" type="tel" required pattern="[0-9\-\s]{9,12}" placeholder="เช่น 0812345678">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>ค่าสายตา ตาขวา (R) <span class="req">*</span></label>
+            <input id="fEyeR" required maxlength="100" placeholder="เช่น -3.50 / สั้น 350 เอียง 50">
+          </div>
+          <div class="field">
+            <label>ค่าสายตา ตาซ้าย (L) <span class="req">*</span></label>
+            <input id="fEyeL" required maxlength="100" placeholder="เช่น -4.00 / สั้น 400">
+          </div>
+        </div>
+        <div class="section-label">รายละเอียดนัดหมาย</div>
+        <div class="field"><label>ลักษณะความต้องการ</label><input id="fType" readonly></div>
+        <div class="row">
+          <div class="field"><label>วันที่นัดหมาย</label><input id="fDate" readonly></div>
+          <div class="field"><label>เวลา</label><input id="fTime" readonly></div>
+        </div>
+        <div class="field"><label>แพทย์</label><input id="fDoctor" readonly></div>
+        <button class="btn block ok" type="submit" id="btnSubmit">💾 บันทึกข้อมูล</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== แอดมิน: เข้าสู่ระบบ ===== -->
+  <section id="view-admin-login" class="view">
+    <button class="btn ghost back" onclick="go('home')">← กลับหน้าหลัก</button>
+    <div class="card login-box">
+      <h2 class="page-title">เข้าสู่ระบบแอดมิน</h2>
+      <p class="page-sub">สำหรับเจ้าหน้าที่ศูนย์เลสิก</p>
+      <form id="loginForm" onsubmit="adminLogin(event)">
+        <div class="field"><label>อีเมล</label><input id="adminEmailIn" type="email" required placeholder="admin@..."></div>
+        <div class="field"><label>รหัสผ่าน</label><input id="adminPass" type="password" required></div>
+        <button class="btn block" type="submit" id="btnLogin">เข้าสู่ระบบ</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== แอดมิน ===== -->
+  <section id="view-admin" class="view">
+    <div class="admin-head">
+      <button class="btn ghost" onclick="go('home')">← กลับหน้าหลัก</button>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="admin-user">👤 <span id="adminEmail"></span></span>
+        <button class="btn light" onclick="adminLogout()">ออกจากระบบ</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2 class="page-title">ระบบแอดมิน</h2>
+      <p class="page-sub">จัดการข้อมูลนัดหมายและตารางแพทย์ออกตรวจ (ข้อมูลอัปเดตอัตโนมัติทุกอุปกรณ์)</p>
+      <div id="seedBox"></div>
+      <div class="tabs">
+        <button class="tab active" id="aTab-appts" onclick="switchAdminTab('appts')">📋 ข้อมูลการนัดหมาย</button>
+        <button class="tab" id="aTab-sched" onclick="switchAdminTab('sched')">📅 ตั้งค่าตารางแพทย์</button>
+        <button class="tab" id="aTab-docs" onclick="switchAdminTab('docs')">👨‍⚕️ รายชื่อแพทย์</button>
+      </div>
+
+      <div class="tab-panel active" id="aPanel-appts">
+        <div class="stats" id="stats"></div>
+        <div class="toolbar">
+          <input id="search" placeholder="🔎 ค้นหาชื่อ / เบอร์โทร" oninput="renderAppts()">
+          <select id="filterStatus" onchange="renderAppts()">
+            <option value="">สถานะทั้งหมด</option>
+            <option value="pending">ยังไม่ได้ติดต่อ</option>
+            <option value="contacted">ติดต่อแล้ว</option>
+            <option value="unreachable">ติดต่อไม่ได้</option>
+          </select>
+          <select id="filterType" onchange="renderAppts()">
+            <option value="">ทุกลักษณะ</option>
+            <option value="exam">ตรวจอย่างเดียว</option>
+            <option value="combo">ตรวจเช้า-ผ่าตัดเย็น</option>
+          </select>
+        </div>
+        <div class="table-wrap" id="apptTable"></div>
+      </div>
+
+      <div class="tab-panel" id="aPanel-sched">
+        <div class="card" style="background:#f8fbff;box-shadow:none">
+          <div class="section-label" style="margin-top:0">⚡ ตั้งค่าตารางแบบช่วงวันที่ / ทั้งปี</div>
+          <div class="bulk">
+            <div class="field"><label>แพทย์</label><select id="bkDoctor"></select></div>
+            <div class="field"><label>ช่วงเวลา</label>
+              <select id="bkSlot" onchange="renderBulkDays()">
+                <option value="in730">ในเวลาราชการ 07.30 น. (จ-ศ)</option>
+                <option value="out1400">นอกเวลาราชการ 14.00 น. (จ-ศ)</option>
+                <option value="sat730">วันเสาร์ นอกเวลาราชการ 07.30 น.</option>
+              </select>
+            </div>
+            <div class="field"><label>ตั้งแต่วันที่</label><input type="date" id="bkFrom"></div>
+            <div class="field"><label>ถึงวันที่</label><input type="date" id="bkTo"></div>
+          </div>
+          <div class="field">
+            <label>วันที่ออกตรวจในสัปดาห์</label>
+            <div class="daychk" id="bkDays"></div>
+          </div>
+          <div class="toolbar" style="margin:0">
+            <button class="btn light" onclick="setWholeYear()">📆 เลือกทั้งปี <span id="bkYearLbl"></span></button>
+            <button class="btn ok" id="btnAdd" onclick="bulkApply(true)">＋ เพิ่มลงตาราง</button>
+            <button class="btn err" id="btnDel" onclick="bulkApply(false)">－ ลบออกจากตาราง</button>
+          </div>
+        </div>
+        <div class="cal-head-bar">
+          <button class="btn light sm" onclick="admMonth(-1)">‹ เดือนก่อน</button>
+          <h3 id="admCalTitle"></h3>
+          <button class="btn light sm" onclick="admMonth(1)">เดือนถัดไป ›</button>
+        </div>
+        <p class="page-sub" style="margin-bottom:10px">💡 กดที่วันที่เพื่อแก้ไขแพทย์ออกตรวจรายวัน</p>
+        <div id="admCal"></div>
+        <div class="legend">
+          <span style="--c:#dbeafe">ในเวลาราชการ 07.30 น.</span>
+          <span style="--c:#fef3c7">นอกเวลาราชการ 14.00 น.</span>
+          <span style="--c:#ede9fe">วันเสาร์ 07.30 น.</span>
+          <span style="--c:#eef2f6">วันอาทิตย์ปิด</span>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="aPanel-docs">
+        <form class="toolbar" onsubmit="addDoctor(event)">
+          <input id="newDoc" required maxlength="100" placeholder="ชื่อแพทย์ เช่น นพ.ประเสริฐ ตาใส">
+          <button class="btn" type="submit">＋ เพิ่มแพทย์</button>
+        </form>
+        <div id="docList"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>© ศูนย์เลสิกโรงพยาบาลกลาง</footer>
+</main>
+
+<div class="modal-backdrop" id="modal"><div class="modal-box" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, onSnapshot, addDoc, setDoc, updateDoc, deleteDoc,
+         query, orderBy, serverTimestamp, arrayUnion, arrayRemove, writeBatch }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+/* =========================================================
+   1) ตั้งค่า Firebase — นำค่าจาก Project settings มาวางแทน
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "YOUR_APP_ID"
+};
+/* อีเมลแอดมิน (ต้องตรงกับใน Firestore Rules) */
+const ADMIN_EMAILS = ['admin@lasik-hospital.com'];
+
+/* ================== ค่าคงที่ ================== */
+const SLOTS = {
+  in730:  { label:'ในเวลาราชการ', time:'07.30 น.', days:[1,2,3,4,5], tag:'07.30', cls:'s-in' },
+  out1400:{ label:'นอกเวลาราชการ', time:'14.00 น.', days:[1,2,3,4,5], tag:'14.00', cls:'s-out' },
+  sat730: { label:'วันเสาร์ (นอกเวลาราชการ)', time:'07.30 น.', days:[6], tag:'07.30', cls:'s-sat' }
+};
+const TH_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TH_DAYS=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const TH_DS=['อา','จ','อ','พ','พฤ','ศ','ส'];
+const STATUS={pending:'ยังไม่ได้ติดต่อ',contacted:'ติดต่อแล้ว',unreachable:'ติดต่อไม่ได้'};
+
+/* ================== ฟังก์ชันช่วย ================== */
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const ds=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseDs=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const today0=()=>{const t=new Date();t.setHours(0,0,0,0);return t};
+const thDate=s=>{const d=parseDs(s);return `วัน${TH_DAYS[d.getDay()]}ที่ ${d.getDate()} ${TH_MONTHS[d.getMonth()]} ${d.getFullYear()+543}`};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const typeText=t=>t==='combo'?'ตรวจเช้า-ผ่าตัดเย็น':'ตรวจอย่างเดียว';
+const isActive=v=>$('view-'+v).classList.contains('active');
+
+/* ตรวจว่าตั้งค่า Firebase แล้วหรือยัง */
+if(firebaseConfig.apiKey.startsWith('YOUR')){
+  $('setupWarn').style.display='block';
+  $('connText').textContent='ยังไม่ได้ตั้งค่า';$('conn').className='conn off';
+  throw new Error('กรุณาตั้งค่า firebaseConfig');
+}
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const auth=getAuth(app);
+const yearRef=y=>doc(db,'schedule',String(y));
+
+/* ================== ข้อมูล (sync เรียลไทม์) ================== */
+let doctors=[], scheduleYears={}, schedule={}, appts=[];
+let isAdminUser=false, unsubAppts=null, modalKind=null, flashIds=new Set();
+
+const docName=id=>(doctors.find(d=>d.id===id)||{}).name||'(ไม่พบแพทย์)';
+const docShort=id=>docName(id).replace(/^((นพ|พญ|ดร|ผศ|รศ|ศ)\.\s*)+/,'').split(' ')[0];
+function slotDocs(k,slot){return ((schedule[k]||{})[slot]||[]).filter(id=>doctors.some(d=>d.id===id))}
+function isBookable(k,slot,docId){
+  const d=parseDs(k);
+  if(d<=today0()) return false;
+  if(!SLOTS[slot].days.includes(d.getDay())) return false;
+  const list=slotDocs(k,slot);
+  return docId?list.includes(docId):list.length>0;
+}
+function countDays(docId,slot){let n=0;for(const k in schedule) if(isBookable(k,slot,docId)) n++;return n}
+
+function setConn(on){
+  $('conn').className='conn '+(on?'on':'off');
+  $('connText').textContent=on?'ออนไลน์ • เรียลไทม์':'ออฟไลน์';
+}
+window.addEventListener('offline',()=>setConn(false));
+
+/* แพทย์ */
+onSnapshot(collection(db,'doctors'),{includeMetadataChanges:true},snap=>{
+  setConn(!snap.metadata.fromCache && navigator.onLine);
+  doctors=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0));
+  refreshViews();
+},err=>{console.error(err);setConn(false);toast('เชื่อมต่อฐานข้อมูลไม่สำเร็จ')});
+
+/* ตารางแพทย์ (1 เอกสารต่อ 1 ปี) */
+onSnapshot(collection(db,'schedule'),snap=>{
+  scheduleYears={};schedule={};
+  snap.forEach(d=>{const days=d.data().days||{};scheduleYears[d.id]=days;Object.assign(schedule,days)});
+  refreshViews();
+},err=>console.error(err));
+
+/* นัดหมาย (เฉพาะแอดมิน) */
+function subscribeAppts(){
+  if(unsubAppts) return;
+  let first=true;
+  unsubAppts=onSnapshot(query(collection(db,'appointments'),orderBy('createdAt','desc')),snap=>{
+    if(!first){
+      snap.docChanges().forEach(c=>{
+        if(c.type==='added'){flashIds.add(c.doc.id);toast('🔔 มีนัดหมายใหม่: '+c.doc.data().name)}
+        if(c.type==='modified') flashIds.add(c.doc.id);
+      });
+    }
+    first=false;
+    appts=snap.docs.map(d=>{const x=d.data({serverTimestamps:'estimate'});
+      return {id:d.id,...x,created:x.createdAt?.toDate?.()||new Date()}});
+    renderAppts();
+    setTimeout(()=>flashIds.clear(),2600);
+  },err=>{console.error(err);toast('ไม่มีสิทธิ์อ่านข้อมูลนัดหมาย')});
+}
+
+/* อัปเดตหน้าจอที่เปิดอยู่เมื่อข้อมูลเปลี่ยน */
+function refreshViews(){
+  if(isActive('calendar')) renderPatientCal();
+  if(isActive('admin')){renderAdminCal();renderDocList();renderDocOptions()}
+  if(modalKind==='doctors') openDoctorModal();
+}
+
+/* ================== นำทาง / Modal / Toast ================== */
+function go(v){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  $('view-'+v).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function openModal(h,kind=null){modalKind=kind;$('modalBox').innerHTML=h;$('modal').classList.add('show')}
+function closeModal(){modalKind=null;$('modal').classList.remove('show')}
+$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal()});
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3000)}
+
+function calGrid(y,m,cellFn){
+  const start=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
+  let h='<div class="cal-grid">'+TH_DS.map((d,i)=>`<div class="cal-head ${i===0?'sun':''}">${d}</div>`).join('');
+  for(let i=0;i<start;i++) h+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=days;d++) h+=cellFn(`${y}-${pad(m+1)}-${pad(d)}`,d);
+  return h+'</div>';
+}
+
+/* ================== ฝั่งผู้ป่วย ================== */
+const st={type:'exam',slot:null,doctorId:null,date:null,y:0,m:0};
+
+function startRegister(){switchRegTab('exam');go('register')}
+function switchRegTab(t){
+  st.type=t;
+  ['exam','combo'].forEach(x=>{
+    $('tabBtn-'+x).classList.toggle('active',x===t);
+    $('panel-'+x).classList.toggle('active',x===t);
+  });
+}
+function timeText(){
+  return st.type==='combo'?'07.30 น. (ตรวจเช้า-ผ่าตัดเย็น)':`${SLOTS[st.slot].label} ${SLOTS[st.slot].time}`;
+}
+function pickSlot(slot){st.type='exam';st.slot=slot;st.doctorId=null;askSpecify()}
+function pickCombo(){st.type='combo';st.slot='out1400';st.doctorId=null;askSpecify()}
+
+function askSpecify(){
+  const isCombo=st.type==='combo';
+  openModal(`
+    <h3>ต้องการระบุแพทย์หรือไม่?</h3>
+    <p class="muted">${typeText(st.type)} : <b>${timeText()}</b></p>
+    <div class="choice-grid">
+      <button class="choice" onclick="chooseSpecify(true)"><span class="ic">👨‍⚕️</span>ระบุแพทย์
+        <small>${isCombo?'เลือกแพทย์ผ่าตัด แล้วเลือกวันที่แพทย์ออกตรวจ':'เลือกแพทย์ที่ต้องการ แล้วเลือกวันที่แพทย์ออกตรวจ'}</small></button>
+      <button class="choice" onclick="chooseSpecify(false)"><span class="ic">📅</span>ไม่ระบุแพทย์
+        <small>เลือกวันที่สะดวกจากปฏิทินได้ทันที</small></button>
+    </div>
+    <div class="modal-actions"><button class="btn ghost" onclick="closeModal()">ยกเลิก</button></div>`);
+}
+function chooseSpecify(yes){
+  if(yes) openDoctorModal();
+  else{st.doctorId=null;closeModal();openPatientCal()}
+}
+function openDoctorModal(){
+  const list=doctors.map(d=>{
+    const n=countDays(d.id,st.slot);
+    return `<button class="doc-item" ${n?`onclick="pickDoctor('${d.id}')"`:'disabled'}>
+      <span>👨‍⚕️ <b>${esc(d.name)}</b></span>
+      <small>${n?`ออกตรวจ ${n} วัน`:'ยังไม่มีตารางออกตรวจ'}</small></button>`;
+  }).join('')||'<p class="empty-state">ยังไม่มีรายชื่อแพทย์</p>';
+  const title=st.type==='combo'?'เลือกแพทย์ผ่าตัด':'เลือกแพทย์ที่ต้องการ';
+  const sub=st.type==='combo'?'ตรวจ 07.30 น. ตามตารางแพทย์นอกเวลาราชการ':`ช่วงเวลา: ${timeText()}`;
+  openModal(`<h3>${title}</h3><p class="muted">${sub}</p>
+    <div class="doc-list">${list}</div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="askSpecify()">← ย้อนกลับ</button>
+      <button class="btn light" onclick="closeModal()">ยกเลิก</button>
+    </div>`,'doctors');
+}
+function pickDoctor(id){st.doctorId=id;closeModal();openPatientCal()}
+
+function openPatientCal(){
+  const keys=Object.keys(schedule).filter(k=>isBookable(k,st.slot,st.doctorId)).sort();
+  const base=keys.length?parseDs(keys[0]):new Date();
+  st.y=base.getFullYear();st.m=base.getMonth();
+  $('calSummary').innerHTML=`
+    <span class="chip">📌 ${typeText(st.type)}</span>
+    <span class="chip">⏰ ${timeText()}</span>
+    <span class="chip">👨‍⚕️ ${st.doctorId?esc(docName(st.doctorId)):'ไม่ระบุแพทย์'}</span>
+    <span class="chip live">🟢 ปฏิทินอัปเดตอัตโนมัติ</span>`;
+  go('calendar');renderPatientCal();
+  if(!keys.length) toast('ขออภัย ยังไม่มีวันว่างในช่วงเวลานี้');
+}
+function patMonth(n){st.m+=n;if(st.m<0){st.m=11;st.y--}if(st.m>11){st.m=0;st.y++}renderPatientCal()}
+function renderPatientCal(){
+  if(!st.slot) return;
+  $('patCalTitle').textContent=`${TH_MONTHS[st.m]} ${st.y+543}`;
+  const td=ds(new Date());
+  $('patCal').innerHTML=calGrid(st.y,st.m,(k,d)=>{
+    const ok=isBookable(k,st.slot,st.doctorId),w=parseDs(k).getDay();
+    const cls=ok?'avail':(w===0?'closed':'disabled');
+    const sub=ok?'ว่าง':(w===0?'ปิด':'');
+    return `<div class="cal-cell ${cls} ${k===td?'today':''}" ${ok?`onclick="pickDate('${k}')"`:''}>
+      <span class="num">${d}</span><span class="sub">${sub}</span></div>`;
+  });
+}
+function pickDate(k){
+  st.date=k;
+  $('apptForm').reset();
+  $('fType').value=typeText(st.type);
+  $('fDate').value=thDate(k);
+  $('fTime').value=timeText();
+  $('fDoctor').value=st.doctorId?docName(st.doctorId):'ไม่ระบุแพทย์';
+  go('form');
+}
+async function submitForm(e){
+  e.preventDefault();
+  /* ตรวจซ้ำกับข้อมูลล่าสุด เผื่อแอดมินเพิ่งปิดวันนี้ */
+  if(!isBookable(st.date,st.slot,st.doctorId)){
+    toast('ขออภัย วันที่เลือกไม่ว่างแล้ว กรุณาเลือกวันใหม่');openPatientCal();return;
+  }
+  const btn=$('btnSubmit');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  try{
+    await addDoc(collection(db,'appointments'),{
+      status:'pending',createdAt:serverTimestamp(),
+      name:$('fName').value.trim(),age:Number($('fAge').value),phone:$('fPhone').value.trim(),
+      eyeR:$('fEyeR').value.trim(),eyeL:$('fEyeL').value.trim(),
+      type:st.type,slot:st.slot,time:timeText(),date:st.date,
+      doctorId:st.doctorId||null,doctorName:st.doctorId?docName(st.doctorId):'ไม่ระบุแพทย์'
+    });
+    openModal(`<div class="success"><div class="ic">✓</div>
+      <h3>บันทึกสำเร็จ</h3>
+      <p>บันทึกข้อมูลเรียบร้อย<br>กรุณารอเจ้าหน้าที่ติดต่อกลับเพื่อคอนเฟิร์มนัดหมาย</p>
+      <button class="btn block" onclick="closeModal();go('home')">กลับหน้าหลัก</button></div>`);
+  }catch(err){console.error(err);toast('บันทึกไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่')}
+  finally{btn.disabled=false;btn.textContent='💾 บันทึกข้อมูล'}
+}
+
+/* ================== ฝั่งแอดมิน ================== */
+const adm={y:new Date().getFullYear(),m:new Date().getMonth()};
+
+onAuthStateChanged(auth,user=>{
+  const email=(user?.email||'').toLowerCase();
+  isAdminUser=!!user&&ADMIN_EMAILS.map(x=>x.toLowerCase()).includes(email);
+  if(user&&!isAdminUser){signOut(auth);toast('บัญชีนี้ไม่มีสิทธิ์แอดมิน');return}
+  if(isAdminUser){$('adminEmail').textContent=user.email;subscribeAppts()}
+  else{
+    if(unsubAppts){unsubAppts();unsubAppts=null}
+    appts=[];
+    if(isActive('admin')) go('admin-login');
+  }
+});
+function openAdmin(){
+  if(isAdminUser){renderAdmin();go('admin')}
+  else{$('adminPass').value='';go('admin-login')}
+}
+async function adminLogin(e){
+  e.preventDefault();
+  const btn=$('btnLogin');btn.disabled=true;
+  try{
+    await signInWithEmailAndPassword(auth,$('adminEmailIn').value.trim(),$('adminPass').value);
+    setTimeout(()=>{if(isAdminUser){renderAdmin();go('admin')}},100);
+  }catch(err){toast('อีเมลหรือรหัสผ่านไม่ถูกต้อง')}
+  finally{btn.disabled=false}
+}
+async function adminLogout(){await signOut(auth);go('home')}
+function switchAdminTab(t){
+  ['appts','sched','docs'].forEach(x=>{
+    $('aTab-'+x).classList.toggle('active',x===t);
+    $('aPanel-'+x).classList.toggle('active',x===t);
+  });
+}
+function renderAdmin(){renderAppts();renderDocOptions();renderBulkDays();setWholeYear(true);renderAdminCal();renderDocList()}
+
+/* --- ข้อมูลนัดหมาย --- */
+function renderAppts(){
+  const c={all:appts.length,pending:0,contacted:0,unreachable:0};
+  appts.forEach(a=>c[a.status]=(c[a.status]||0)+1);
+  $('stats').innerHTML=`
+    <div class="stat" style="--c:#0f4c81"><div class="n">${c.all}</div><div class="t">นัดหมายทั้งหมด</div></div>
+    <div class="stat" style="--c:#d97706"><div class="n">${c.pending}</div><div class="t">ยังไม่ได้ติดต่อ</div></div>
+    <div class="stat" style="--c:#16a34a"><div class="n">${c.contacted}</div><div class="t">ติดต่อแล้ว</div></div>
+    <div class="stat" style="--c:#dc2626"><div class="n">${c.unreachable}</div><div class="t">ติดต่อไม่ได้</div></div>`;
+  const q=$('search').value.trim().toLowerCase(),fs=$('filterStatus').value,ft=$('filterType').value;
+  const rows=appts.filter(a=>(!fs||a.status===fs)&&(!ft||a.type===ft)&&(!q||(a.name||'').toLowerCase().includes(q)||(a.phone||'').includes(q)));
+  if(!rows.length){$('apptTable').innerHTML='<div class="empty-state">📭 ยังไม่มีข้อมูลการนัดหมาย</div>';return}
+  $('apptTable').innerHTML=`<table><thead><tr>
+    <th>#</th><th>วันที่ลงทะเบียน</th><th>ชื่อ-สกุล</th><th>อายุ</th><th>เบอร์โทร</th><th>ค่าสายตา</th>
+    <th>ลักษณะความต้องการ</th><th>วันนัด / เวลา</th><th>แพทย์</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody>
+    ${rows.map((a,i)=>{const cd=a.created;return `<tr class="${flashIds.has(a.id)?'flash':''}">
+      <td>${i+1}</td>
+      <td>${cd.getDate()}/${cd.getMonth()+1}/${cd.getFullYear()+543}<br><small>${pad(cd.getHours())}:${pad(cd.getMinutes())} น.</small></td>
+      <td><b>${esc(a.name)}</b></td><td>${esc(a.age)}</td><td>${esc(a.phone)}</td>
+      <td>R: ${esc(a.eyeR)}<br>L: ${esc(a.eyeL)}</td>
+      <td>${typeText(a.type)}</td>
+      <td>${a.date?thDate(a.date):'-'}<br><small>${esc(a.time)}</small></td>
+      <td>${esc(a.doctorName)}</td>
+      <td><span class="status st-${a.status}">${STATUS[a.status]||a.status}</span>
+        ${a.updatedBy?`<br><small>โดย ${esc(a.updatedBy)}</small>`:''}</td>
+      <td><div class="actions">
+        <button class="btn ok sm" onclick="setStatus('${a.id}','contacted')">ติดต่อแล้ว</button>
+        <button class="btn err sm" onclick="setStatus('${a.id}','unreachable')">ติดต่อไม่ได้</button>
+        <button class="btn light sm" title="ลบ" onclick="delAppt('${a.id}')">🗑</button>
+      </div></td></tr>`}).join('')}
+    </tbody></table>`;
+}
+async function setStatus(id,s){
+  try{
+    await updateDoc(doc(db,'appointments',id),{status:s,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.email});
+    toast('อัปเดตสถานะ: '+STATUS[s]);
+  }catch(err){console.error(err);toast('อัปเดตไม่สำเร็จ')}
+}
+async function delAppt(id){
+  if(!confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) return;
+  try{await deleteDoc(doc(db,'appointments',id));toast('ลบรายการเรียบร้อย')}
+  catch(err){console.error(err);toast('ลบไม่สำเร็จ')}
+}
+
+/* --- ตั้งค่าตาราง --- */
+function renderDocOptions(){
+  const sel=$('bkDoctor'),cur=sel.value;
+  sel.innerHTML=doctors.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('');
+  if(doctors.some(d=>d.id===cur)) sel.value=cur;
+}
+function renderBulkDays(){
+  if($('bkSlot').value==='sat730'){$('bkDays').innerHTML='<label style="background:#ede9fe"><input type="checkbox" value="6" checked disabled> ทุกวันเสาร์</label>';return}
+  $('bkDays').innerHTML=[1,2,3,4,5].map(w=>`<label><input type="checkbox" value="${w}" checked> ${TH_DAYS[w]}</label>`).join('');
+}
+function setWholeYear(silent){
+  $('bkFrom').value=`${adm.y}-01-01`;$('bkTo').value=`${adm.y}-12-31`;
+  $('bkYearLbl').textContent=`พ.ศ. ${adm.y+543}`;
+  if(silent!==true) toast(`เลือกช่วงทั้งปี พ.ศ. ${adm.y+543}`);
+}
+async function bulkApply(add){
+  const docId=$('bkDoctor').value,slot=$('bkSlot').value;
+  if(!docId) return toast('กรุณาเพิ่มรายชื่อแพทย์ก่อน');
+  if(!$('bkFrom').value||!$('bkTo').value) return toast('กรุณาเลือกช่วงวันที่');
+  const from=parseDs($('bkFrom').value),to=parseDs($('bkTo').value);
+  if(from>to) return toast('วันที่เริ่มต้องไม่เกินวันที่สิ้นสุด');
+  const days=[...$('bkDays').querySelectorAll('input:checked')].map(i=>+i.value);
+  if(!days.length) return toast('กรุณาเลือกวันในสัปดาห์');
+
+  const payload={};let n=0;
+  for(let d=new Date(from);d<=to;d.setDate(d.getDate()+1)){
+    const w=d.getDay();
+    if(!days.includes(w)||!SLOTS[slot].days.includes(w)) continue;
+    const k=ds(d),y=k.slice(0,4),has=slotDocs(k,slot).includes(docId);
+    if(add?!has:has) n++;
+    (payload[y]??={})[k]={[slot]:add?arrayUnion(docId):arrayRemove(docId)};
+  }
+  const b1=$('btnAdd'),b2=$('btnDel');b1.disabled=b2.disabled=true;
+  try{
+    await Promise.all(Object.entries(payload).map(([y,dd])=>setDoc(yearRef(y),{days:dd},{merge:true})));
+    toast(`${add?'เพิ่ม':'ลบ'}ตาราง ${docName(docId)} จำนวน ${n} วัน`);
+  }catch(err){console.error(err);toast('บันทึกตารางไม่สำเร็จ')}
+  finally{b1.disabled=b2.disabled=false}
+}
+function admMonth(n){adm.m+=n;if(adm.m<0){adm.m=11;adm.y--}if(adm.m>11){adm.m=0;adm.y++}$('bkYearLbl').textContent=`พ.ศ. ${adm.y+543}`;renderAdminCal()}
+function renderAdminCal(){
+  $('admCalTitle').textContent=`${TH_MONTHS[adm.m]} ${adm.y+543}`;
+  const td=ds(new Date());
+  $('admCal').innerHTML=calGrid(adm.y,adm.m,(k,d)=>{
+    const w=parseDs(k).getDay();
+    if(w===0) return `<div class="cal-cell closed"><span class="num">${d}</span><span class="sub">ปิด</span></div>`;
+    const slots=w===6?['sat730']:['in730','out1400'];
+    const tags=slots.map(s=>{const ids=slotDocs(k,s);
+      return `<div class="tag ${SLOTS[s].cls}" title="${SLOTS[s].label} ${SLOTS[s].time}: ${esc(ids.map(docName).join(', ')||'-')}"><b>${SLOTS[s].tag}</b> ${esc(ids.map(docShort).join(', ')||'-')}</div>`}).join('');
+    return `<div class="cal-cell admin ${k===td?'today':''}" onclick="editDay('${k}')"><span class="num">${d}</span>${tags}</div>`;
+  });
+}
+function editDay(k){
+  const w=parseDs(k).getDay(),slots=w===6?['sat730']:['in730','out1400'];
+  const body=slots.map(s=>{const cur=slotDocs(k,s);
+    return `<div class="section-label"><span class="tag ${SLOTS[s].cls}" style="font-size:.9rem">${SLOTS[s].label} ${SLOTS[s].time}</span></div>
+      <div class="chk-list">${doctors.map(d=>`<label><input type="checkbox" data-slot="${s}" value="${d.id}" ${cur.includes(d.id)?'checked':''}> ${esc(d.name)}</label>`).join('')||'<p class="muted">ยังไม่มีรายชื่อแพทย์</p>'}</div>`}).join('');
+  openModal(`<h3>ตารางแพทย์ออกตรวจ</h3><p class="muted" style="margin-bottom:14px">${thDate(k)}</p>
+    <div id="dayEdit">${body}</div>
+    <div class="modal-actions"><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
+    <button class="btn" onclick="saveDay('${k}')">บันทึก</button></div>`,'editDay');
+}
+async function saveDay(k){
+  const w=parseDs(k).getDay(),slots=w===6?['sat730']:['in730','out1400'];
+  const obj={};
+  slots.forEach(s=>obj[s]=[...document.querySelectorAll(`#dayEdit input[data-slot="${s}"]:checked`)].map(i=>i.value));
+  try{
+    await setDoc(yearRef(k.slice(0,4)),{days:{[k]:obj}},{merge:true});
+    closeModal();toast('บันทึกตารางเรียบร้อย');
+  }catch(err){console.error(err);toast('บันทึกไม่สำเร็จ')}
+}
+
+/* --- รายชื่อแพทย์ --- */
+function renderDocList(){
+  $('seedBox').innerHTML=doctors.length?'':`<div class="seed">
+    <span>📦 ยังไม่มีข้อมูลแพทย์ในระบบ ต้องการสร้างข้อมูลตัวอย่าง (แพทย์ 4 ท่าน + ตาราง 2 ปี) หรือไม่?</span>
+    <button class="btn accent" onclick="seedDemo()">สร้างข้อมูลตัวอย่าง</button></div>`;
+  $('docList').innerHTML=doctors.map(d=>`<div class="doc-row"><span>👨‍⚕️ <b>${esc(d.name)}</b></span>
+    <button class="btn err sm" onclick="delDoctor('${d.id}')">ลบ</button></div>`).join('')||'<div class="empty-state">ยังไม่มีรายชื่อแพทย์</div>';
+}
+async function addDoctor(e){
+  e.preventDefault();
+  const name=$('newDoc').value.trim();if(!name) return;
+  try{await addDoc(collection(db,'doctors'),{name,order:Date.now()});$('newDoc').value='';toast('เพิ่มแพทย์เรียบร้อย')}
+  catch(err){console.error(err);toast('เพิ่มแพทย์ไม่สำเร็จ')}
+}
+async function delDoctor(id){
+  if(!confirm(`ต้องการลบ ${docName(id)} และตารางออกตรวจทั้งหมดของแพทย์ท่านนี้ใช่หรือไม่?`)) return;
+  try{
+    await deleteDoc(doc(db,'doctors',id));
+    const tasks=Object.entries(scheduleYears).map(([y,days])=>{
+      let changed=false;const nd={};
+      for(const k in days){nd[k]={};for(const s in days[k]){
+        const arr=days[k][s]||[],f=arr.filter(x=>x!==id);
+        if(f.length!==arr.length) changed=true;nd[k][s]=f;
+      }}
+      return changed?updateDoc(yearRef(y),{days:nd}):null;
+    }).filter(Boolean);
+    await Promise.all(tasks);
+    toast('ลบแพทย์เรียบร้อย');
+  }catch(err){console.error(err);toast('ลบไม่สำเร็จ')}
+}
+async function seedDemo(){
+  if(!confirm('สร้างข้อมูลตัวอย่างแพทย์ 4 ท่าน และตารางออกตรวจปีนี้กับปีหน้า?')) return;
+  const demo=[['d1','นพ.สมชาย ใจดี'],['d2','พญ.สุดา แสงทอง'],['d3','นพ.วิทยา รักษ์ตา'],['d4','พญ.อรุณี มองไกล']];
+  const batch=writeBatch(db);
+  demo.forEach(([id,name],i)=>batch.set(doc(db,'doctors',id),{name,order:i+1}));
+  const y0=new Date().getFullYear();
+  [y0,y0+1].forEach(y=>{
+    const days={};
+    for(let d=new Date(y,0,1);d.getFullYear()===y;d.setDate(d.getDate()+1)){
+      const w=d.getDay(),k=ds(d);
+      if(w>=1&&w<=5) days[k]={in730:[demo[(w-1)%4][0],demo[w%4][0]],out1400:[demo[(w+1)%4][0]]};
+      else if(w===6) days[k]={sat730:[demo[Math.floor(d.getDate()/7)%4][0]]};
+    }
+    batch.set(yearRef(y),{days});
+  });
+  try{await batch.commit();toast('สร้างข้อมูลตัวอย่างเรียบร้อย')}
+  catch(err){console.error(err);toast('สร้างข้อมูลไม่สำเร็จ (ตรวจสอบ Rules/อีเมลแอดมิน)')}
+}
+
+/* ให้ปุ่มใน HTML เรียกฟังก์ชันได้ */
+Object.assign(window,{go,closeModal,startRegister,switchRegTab,pickSlot,pickCombo,askSpecify,chooseSpecify,
+  pickDoctor,patMonth,pickDate,submitForm,openAdmin,adminLogin,adminLogout,switchAdminTab,renderAppts,
+  setStatus,delAppt,renderBulkDays,setWholeYear,bulkApply,admMonth,editDay,saveDay,addDoctor,delDoctor,seedDemo});
+</script>
+</body>
+</html>
