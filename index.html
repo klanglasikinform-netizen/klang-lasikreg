@@ -92,6 +92,7 @@ h1,h2,h3,.btn,.tab{font-family:'Prompt',sans-serif}
 .field input,.field select{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:11px;font-size:1rem;font-family:inherit;background:#fff}
 .field input:focus,.field select:focus{outline:none;border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(23,105,170,.15)}
 .field input[readonly]{background:#f1f5f9;color:var(--primary);font-weight:600}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 .req{color:var(--err)}
 .section-label{font-family:Prompt;color:var(--primary);font-size:1.1rem;margin:6px 0 14px;padding-bottom:8px;border-bottom:1px dashed var(--border)}
 .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
@@ -148,8 +149,7 @@ tr.flash td{animation:flash 2.5s}
 footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px 0 40px}
 @media(max-width:640px){
  body{font-size:16px}.card{padding:18px}.row{grid-template-columns:1fr}.choice-grid{grid-template-columns:1fr}
- .slot-grid.single{grid-template-columns:1fr}
- .topbar-inner{flex-wrap:wrap}
+ .slot-grid.single{grid-template-columns:1fr}.topbar-inner{flex-wrap:wrap}
  .cal-grid{gap:3px}.cal-cell{min-height:54px;padding:4px;border-radius:8px}.cal-cell.admin{min-height:84px}
  .cal-cell .sub{font-size:.65rem}.tag{font-size:.6rem;padding:1px 3px}
  .brand h1{font-size:1.02rem}.brand p{font-size:.85rem}.hero h2{font-size:1.5rem}.page-title{font-size:1.35rem}
@@ -174,8 +174,8 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px 0 40px
 <main class="container">
 
   <div class="card setup" id="setupWarn">
-    <h3>⚠️ ยังไม่ได้ตั้งค่า Firebase</h3>
-    <p>กรุณาใส่ค่า <b>firebaseConfig</b> และ <b>ADMIN_EMAILS</b> ในโค้ดส่วน &lt;script&gt; ก่อนใช้งาน</p>
+    <h3>⚠️ ยังไม่ได้ตั้งค่า API_URL</h3>
+    <p>กรุณาใส่ URL ของ Cloudflare Worker ในตัวแปร <b>API_URL</b> ส่วน &lt;script&gt; ก่อนใช้งาน</p>
   </div>
 
   <!-- ===== หน้าหลัก ===== -->
@@ -204,12 +204,10 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px 0 40px
     <div class="card">
       <h2 class="page-title">ลงทะเบียนนัดหมาย</h2>
       <p class="page-sub">เลือกลักษณะความต้องการและช่วงเวลาที่สะดวก</p>
-
       <div class="tabs">
         <button class="tab active" id="tabBtn-exam" onclick="switchRegTab('exam')">🔍 ตรวจอย่างเดียว</button>
         <button class="tab" id="tabBtn-combo" onclick="switchRegTab('combo')">⚕️ ตรวจเช้า-ผ่าตัดเย็น</button>
       </div>
-
       <div class="tab-panel active" id="panel-exam">
         <div class="slot-grid">
           <button class="slot-card" onclick="pickSlot('in730')">
@@ -232,7 +230,6 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px 0 40px
           </button>
         </div>
       </div>
-
       <div class="tab-panel" id="panel-combo">
         <div class="slot-grid single">
           <button class="slot-card" onclick="pickCombo()">
@@ -275,6 +272,7 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px 0 40px
       <h2 class="page-title">กรอกข้อมูลเพื่อลงนัดหมาย</h2>
       <p class="page-sub">กรุณากรอกข้อมูลให้ครบถ้วน (<span class="req">*</span> จำเป็นต้องกรอก)</p>
       <form id="apptForm" onsubmit="submitForm(event)">
+        <input id="fWebsite" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="section-label">ข้อมูลผู้ลงทะเบียน</div>
         <div class="field">
           <label>ชื่อ-สกุล <span class="req">*</span></label>
@@ -318,9 +316,9 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px 0 40px
     <div class="card login-box">
       <h2 class="page-title">เข้าสู่ระบบแอดมิน</h2>
       <p class="page-sub">สำหรับเจ้าหน้าที่ศูนย์เลสิก</p>
-      <form id="loginForm" onsubmit="adminLogin(event)">
-        <div class="field"><label>อีเมล</label><input id="adminEmailIn" type="email" required placeholder="admin@..."></div>
-        <div class="field"><label>รหัสผ่าน</label><input id="adminPass" type="password" required></div>
+      <form onsubmit="adminLogin(event)">
+        <div class="field"><label>ชื่อผู้ใช้</label><input id="adminUser" required autocomplete="username"></div>
+        <div class="field"><label>รหัสผ่าน</label><input id="adminPass" type="password" required autocomplete="current-password"></div>
         <button class="btn block" type="submit" id="btnLogin">เข้าสู่ระบบ</button>
       </form>
     </div>
@@ -331,13 +329,13 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px 0 40px
     <div class="admin-head">
       <button class="btn ghost" onclick="go('home')">← กลับหน้าหลัก</button>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <span class="admin-user">👤 <span id="adminEmail"></span></span>
+        <span class="admin-user">👤 <span id="adminName"></span></span>
         <button class="btn light" onclick="adminLogout()">ออกจากระบบ</button>
       </div>
     </div>
     <div class="card">
       <h2 class="page-title">ระบบแอดมิน</h2>
-      <p class="page-sub">จัดการข้อมูลนัดหมายและตารางแพทย์ออกตรวจ (ข้อมูลอัปเดตอัตโนมัติทุกอุปกรณ์)</p>
+      <p class="page-sub">จัดการข้อมูลนัดหมายและตารางแพทย์ออกตรวจ (ซิงก์อัตโนมัติทุก 10 วินาที)</p>
       <div id="seedBox"></div>
       <div class="tabs">
         <button class="tab active" id="aTab-appts" onclick="switchAdminTab('appts')">📋 ข้อมูลการนัดหมาย</button>
@@ -420,27 +418,13 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px 0 40px
 <div class="modal-backdrop" id="modal"><div class="modal-box" id="modalBox"></div></div>
 <div class="toast" id="toast"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot, addDoc, setDoc, updateDoc, deleteDoc,
-         query, orderBy, serverTimestamp, arrayUnion, arrayRemove, writeBatch }
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
+<script>
 /* =========================================================
-   1) ตั้งค่า Firebase — นำค่าจาก Project settings มาวางแทน
+   ตั้งค่า: ใส่ URL ของ Cloudflare Worker (ไม่ต้องมี / ปิดท้าย)
    ========================================================= */
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "YOUR_APP_ID"
-};
-/* อีเมลแอดมิน (ต้องตรงกับใน Firestore Rules) */
-const ADMIN_EMAILS = ['admin@lasik-hospital.com'];
+const API_URL = 'https://lasik-api.YOUR-SUBDOMAIN.workers.dev';
+const POLL_PUBLIC = 20000;   // หน้าผู้ป่วย ดึงข้อมูลใหม่ทุก 20 วินาที
+const POLL_ADMIN  = 10000;   // หน้าแอดมิน ดึงข้อมูลใหม่ทุก 10 วินาที
 
 /* ================== ค่าคงที่ ================== */
 const SLOTS = {
@@ -464,21 +448,10 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const typeText=t=>t==='combo'?'ตรวจเช้า-ผ่าตัดเย็น':'ตรวจอย่างเดียว';
 const isActive=v=>$('view-'+v).classList.contains('active');
 
-/* ตรวจว่าตั้งค่า Firebase แล้วหรือยัง */
-if(firebaseConfig.apiKey.startsWith('YOUR')){
-  $('setupWarn').style.display='block';
-  $('connText').textContent='ยังไม่ได้ตั้งค่า';$('conn').className='conn off';
-  throw new Error('กรุณาตั้งค่า firebaseConfig');
-}
-
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
-const auth=getAuth(app);
-const yearRef=y=>doc(db,'schedule',String(y));
-
-/* ================== ข้อมูล (sync เรียลไทม์) ================== */
-let doctors=[], scheduleYears={}, schedule={}, appts=[];
-let isAdminUser=false, unsubAppts=null, modalKind=null, flashIds=new Set();
+/* ================== ข้อมูล ================== */
+let doctors=[], schedule={}, appts=[];
+let pubSig='', apptSig='', knownAppts=null, flashIds=new Set(), modalKind=null;
+let admin=JSON.parse(sessionStorage.getItem('lasik_admin')||'null');   // {user,pass}
 
 const docName=id=>(doctors.find(d=>d.id===id)||{}).name||'(ไม่พบแพทย์)';
 const docShort=id=>docName(id).replace(/^((นพ|พญ|ดร|ผศ|รศ|ศ)\.\s*)+/,'').split(' ')[0];
@@ -492,51 +465,77 @@ function isBookable(k,slot,docId){
 }
 function countDays(docId,slot){let n=0;for(const k in schedule) if(isBookable(k,slot,docId)) n++;return n}
 
+/* ================== เชื่อมต่อ API ================== */
 function setConn(on){
   $('conn').className='conn '+(on?'on':'off');
-  $('connText').textContent=on?'ออนไลน์ • เรียลไทม์':'ออฟไลน์';
+  $('connText').textContent=on?'ออนไลน์ • ซิงก์อัตโนมัติ':'ออฟไลน์';
 }
-window.addEventListener('offline',()=>setConn(false));
-
-/* แพทย์ */
-onSnapshot(collection(db,'doctors'),{includeMetadataChanges:true},snap=>{
-  setConn(!snap.metadata.fromCache && navigator.onLine);
-  doctors=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0));
-  refreshViews();
-},err=>{console.error(err);setConn(false);toast('เชื่อมต่อฐานข้อมูลไม่สำเร็จ')});
-
-/* ตารางแพทย์ (1 เอกสารต่อ 1 ปี) */
-onSnapshot(collection(db,'schedule'),snap=>{
-  scheduleYears={};schedule={};
-  snap.forEach(d=>{const days=d.data().days||{};scheduleYears[d.id]=days;Object.assign(schedule,days)});
-  refreshViews();
-},err=>console.error(err));
-
-/* นัดหมาย (เฉพาะแอดมิน) */
-function subscribeAppts(){
-  if(unsubAppts) return;
-  let first=true;
-  unsubAppts=onSnapshot(query(collection(db,'appointments'),orderBy('createdAt','desc')),snap=>{
-    if(!first){
-      snap.docChanges().forEach(c=>{
-        if(c.type==='added'){flashIds.add(c.doc.id);toast('🔔 มีนัดหมายใหม่: '+c.doc.data().name)}
-        if(c.type==='modified') flashIds.add(c.doc.id);
-      });
-    }
-    first=false;
-    appts=snap.docs.map(d=>{const x=d.data({serverTimestamps:'estimate'});
-      return {id:d.id,...x,created:x.createdAt?.toDate?.()||new Date()}});
-    renderAppts();
-    setTimeout(()=>flashIds.clear(),2600);
-  },err=>{console.error(err);toast('ไม่มีสิทธิ์อ่านข้อมูลนัดหมาย')});
+async function api(path,opt={}){
+  const headers={'Content-Type':'application/json'};
+  if(admin){headers['X-Admin-User']=admin.user;headers['X-Admin-Pass']=admin.pass}
+  const r=await fetch(API_URL+path,{method:opt.method||'GET',headers,cache:'no-store',
+    body:opt.body?JSON.stringify(opt.body):undefined});
+  let j={};try{j=await r.json()}catch(e){}
+  setConn(true);
+  if(!r.ok){const e=new Error(j.error||('HTTP '+r.status));e.status=r.status;throw e}
+  return j;
 }
-
-/* อัปเดตหน้าจอที่เปิดอยู่เมื่อข้อมูลเปลี่ยน */
+function applyShared(d,s){
+  const sig=JSON.stringify([d,s]);
+  if(sig===pubSig) return;
+  pubSig=sig;
+  doctors=(d||[]).slice().sort((a,b)=>(a.order||0)-(b.order||0));
+  schedule=s||{};
+  refreshViews();
+}
+async function loadPublic(){
+  try{const j=await api('/api/public');applyShared(j.doctors,j.schedule)}
+  catch(e){setConn(false)}
+}
+function applyAdmin(j){
+  applyShared(j.doctors,j.schedule);
+  const list=(j.appointments||[]).slice().sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+  const sig=JSON.stringify(list);
+  if(sig===apptSig) return;
+  if(knownAppts){
+    list.forEach(a=>{
+      const old=knownAppts.get(a.id);
+      if(old===undefined){flashIds.add(a.id);toast('🔔 มีนัดหมายใหม่: '+a.name)}
+      else if(old!==a.status) flashIds.add(a.id);
+    });
+  }
+  knownAppts=new Map(list.map(a=>[a.id,a.status]));
+  apptSig=sig;appts=list;renderAppts();
+  setTimeout(()=>flashIds.clear(),2600);
+}
+async function loadAdmin(){
+  if(!admin) return;
+  try{applyAdmin(await api('/api/admin/data'))}
+  catch(e){
+    if(e.status===401){clearAdmin();go('admin-login');toast('กรุณาเข้าสู่ระบบใหม่')}
+    else setConn(false);
+  }
+}
 function refreshViews(){
   if(isActive('calendar')) renderPatientCal();
   if(isActive('admin')){renderAdminCal();renderDocList();renderDocOptions()}
   if(modalKind==='doctors') openDoctorModal();
 }
+
+/* ดึงข้อมูลใหม่อัตโนมัติ */
+let timer;
+async function tick(){
+  clearTimeout(timer);
+  const adminMode=admin&&isActive('admin');
+  if(!document.hidden){
+    if(adminMode) await loadAdmin();
+    else if(!isActive('home')||!pubSig) await loadPublic();
+  }
+  timer=setTimeout(tick,adminMode?POLL_ADMIN:POLL_PUBLIC);
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
+window.addEventListener('online',tick);
+window.addEventListener('offline',()=>setConn(false));
 
 /* ================== นำทาง / Modal / Toast ================== */
 function go(v){
@@ -560,7 +559,7 @@ function calGrid(y,m,cellFn){
 /* ================== ฝั่งผู้ป่วย ================== */
 const st={type:'exam',slot:null,doctorId:null,date:null,y:0,m:0};
 
-function startRegister(){switchRegTab('exam');go('register')}
+function startRegister(){switchRegTab('exam');go('register');loadPublic()}
 function switchRegTab(t){
   st.type=t;
   ['exam','combo'].forEach(x=>{
@@ -645,55 +644,47 @@ function pickDate(k){
 }
 async function submitForm(e){
   e.preventDefault();
-  /* ตรวจซ้ำกับข้อมูลล่าสุด เผื่อแอดมินเพิ่งปิดวันนี้ */
-  if(!isBookable(st.date,st.slot,st.doctorId)){
-    toast('ขออภัย วันที่เลือกไม่ว่างแล้ว กรุณาเลือกวันใหม่');openPatientCal();return;
-  }
+  if(!isBookable(st.date,st.slot,st.doctorId)){toast('ขออภัย วันที่เลือกไม่ว่างแล้ว กรุณาเลือกวันใหม่');openPatientCal();return}
   const btn=$('btnSubmit');btn.disabled=true;btn.textContent='กำลังบันทึก...';
   try{
-    await addDoc(collection(db,'appointments'),{
-      status:'pending',createdAt:serverTimestamp(),
+    await api('/api/appointments',{method:'POST',body:{
       name:$('fName').value.trim(),age:Number($('fAge').value),phone:$('fPhone').value.trim(),
       eyeR:$('fEyeR').value.trim(),eyeL:$('fEyeL').value.trim(),
-      type:st.type,slot:st.slot,time:timeText(),date:st.date,
-      doctorId:st.doctorId||null,doctorName:st.doctorId?docName(st.doctorId):'ไม่ระบุแพทย์'
-    });
+      type:st.type,slot:st.slot,date:st.date,doctorId:st.doctorId,website:$('fWebsite').value
+    }});
     openModal(`<div class="success"><div class="ic">✓</div>
       <h3>บันทึกสำเร็จ</h3>
       <p>บันทึกข้อมูลเรียบร้อย<br>กรุณารอเจ้าหน้าที่ติดต่อกลับเพื่อคอนเฟิร์มนัดหมาย</p>
       <button class="btn block" onclick="closeModal();go('home')">กลับหน้าหลัก</button></div>`);
-  }catch(err){console.error(err);toast('บันทึกไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่')}
-  finally{btn.disabled=false;btn.textContent='💾 บันทึกข้อมูล'}
+  }catch(err){
+    if(err.status===409){toast(err.message);await loadPublic();openPatientCal()}
+    else toast(err.message&&!err.message.startsWith('HTTP')?err.message:'บันทึกไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
+  }finally{btn.disabled=false;btn.textContent='💾 บันทึกข้อมูล'}
 }
 
 /* ================== ฝั่งแอดมิน ================== */
 const adm={y:new Date().getFullYear(),m:new Date().getMonth()};
 
-onAuthStateChanged(auth,user=>{
-  const email=(user?.email||'').toLowerCase();
-  isAdminUser=!!user&&ADMIN_EMAILS.map(x=>x.toLowerCase()).includes(email);
-  if(user&&!isAdminUser){signOut(auth);toast('บัญชีนี้ไม่มีสิทธิ์แอดมิน');return}
-  if(isAdminUser){$('adminEmail').textContent=user.email;subscribeAppts()}
-  else{
-    if(unsubAppts){unsubAppts();unsubAppts=null}
-    appts=[];
-    if(isActive('admin')) go('admin-login');
-  }
-});
+function clearAdmin(){admin=null;sessionStorage.removeItem('lasik_admin');appts=[];apptSig='';knownAppts=null}
 function openAdmin(){
-  if(isAdminUser){renderAdmin();go('admin')}
+  if(admin){$('adminName').textContent=admin.user;go('admin');renderAdmin();tick()}
   else{$('adminPass').value='';go('admin-login')}
 }
 async function adminLogin(e){
   e.preventDefault();
-  const btn=$('btnLogin');btn.disabled=true;
+  const btn=$('btnLogin');btn.disabled=true;btn.textContent='กำลังตรวจสอบ...';
+  admin={user:$('adminUser').value.trim(),pass:$('adminPass').value};
   try{
-    await signInWithEmailAndPassword(auth,$('adminEmailIn').value.trim(),$('adminPass').value);
-    setTimeout(()=>{if(isAdminUser){renderAdmin();go('admin')}},100);
-  }catch(err){toast('อีเมลหรือรหัสผ่านไม่ถูกต้อง')}
-  finally{btn.disabled=false}
+    const j=await api('/api/admin/data');
+    sessionStorage.setItem('lasik_admin',JSON.stringify(admin));
+    $('adminName').textContent=admin.user;
+    go('admin');renderAdmin();applyAdmin(j);tick();
+  }catch(err){
+    admin=null;
+    toast(err.status===401?'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง':'เข้าสู่ระบบไม่สำเร็จ (ชื่อผู้ใช้/รหัสผ่านต้องเป็นภาษาอังกฤษ)');
+  }finally{btn.disabled=false;btn.textContent='เข้าสู่ระบบ'}
 }
-async function adminLogout(){await signOut(auth);go('home')}
+function adminLogout(){clearAdmin();go('home')}
 function switchAdminTab(t){
   ['appts','sched','docs'].forEach(x=>{
     $('aTab-'+x).classList.toggle('active',x===t);
@@ -701,6 +692,11 @@ function switchAdminTab(t){
   });
 }
 function renderAdmin(){renderAppts();renderDocOptions();renderBulkDays();setWholeYear(true);renderAdminCal();renderDocList()}
+async function adminAction(fn,okMsg){
+  toast('กำลังบันทึก...');
+  try{const r=await fn();toast(typeof okMsg==='function'?okMsg(r):okMsg);await loadAdmin();return true}
+  catch(err){console.error(err);toast(err.message||'บันทึกไม่สำเร็จ');return false}
+}
 
 /* --- ข้อมูลนัดหมาย --- */
 function renderAppts(){
@@ -717,7 +713,7 @@ function renderAppts(){
   $('apptTable').innerHTML=`<table><thead><tr>
     <th>#</th><th>วันที่ลงทะเบียน</th><th>ชื่อ-สกุล</th><th>อายุ</th><th>เบอร์โทร</th><th>ค่าสายตา</th>
     <th>ลักษณะความต้องการ</th><th>วันนัด / เวลา</th><th>แพทย์</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody>
-    ${rows.map((a,i)=>{const cd=a.created;return `<tr class="${flashIds.has(a.id)?'flash':''}">
+    ${rows.map((a,i)=>{const cd=new Date(a.createdAt);return `<tr class="${flashIds.has(a.id)?'flash':''}">
       <td>${i+1}</td>
       <td>${cd.getDate()}/${cd.getMonth()+1}/${cd.getFullYear()+543}<br><small>${pad(cd.getHours())}:${pad(cd.getMinutes())} น.</small></td>
       <td><b>${esc(a.name)}</b></td><td>${esc(a.age)}</td><td>${esc(a.phone)}</td>
@@ -725,7 +721,7 @@ function renderAppts(){
       <td>${typeText(a.type)}</td>
       <td>${a.date?thDate(a.date):'-'}<br><small>${esc(a.time)}</small></td>
       <td>${esc(a.doctorName)}</td>
-      <td><span class="status st-${a.status}">${STATUS[a.status]||a.status}</span>
+      <td><span class="status st-${a.status}">${STATUS[a.status]||esc(a.status)}</span>
         ${a.updatedBy?`<br><small>โดย ${esc(a.updatedBy)}</small>`:''}</td>
       <td><div class="actions">
         <button class="btn ok sm" onclick="setStatus('${a.id}','contacted')">ติดต่อแล้ว</button>
@@ -734,16 +730,12 @@ function renderAppts(){
       </div></td></tr>`}).join('')}
     </tbody></table>`;
 }
-async function setStatus(id,s){
-  try{
-    await updateDoc(doc(db,'appointments',id),{status:s,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.email});
-    toast('อัปเดตสถานะ: '+STATUS[s]);
-  }catch(err){console.error(err);toast('อัปเดตไม่สำเร็จ')}
+function setStatus(id,s){
+  adminAction(()=>api(`/api/admin/appointments/${id}`,{method:'PATCH',body:{status:s}}),'อัปเดตสถานะ: '+STATUS[s]);
 }
-async function delAppt(id){
+function delAppt(id){
   if(!confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) return;
-  try{await deleteDoc(doc(db,'appointments',id));toast('ลบรายการเรียบร้อย')}
-  catch(err){console.error(err);toast('ลบไม่สำเร็จ')}
+  adminAction(()=>api(`/api/admin/appointments/${id}`,{method:'DELETE'}),'ลบรายการเรียบร้อย');
 }
 
 /* --- ตั้งค่าตาราง --- */
@@ -762,28 +754,16 @@ function setWholeYear(silent){
   if(silent!==true) toast(`เลือกช่วงทั้งปี พ.ศ. ${adm.y+543}`);
 }
 async function bulkApply(add){
-  const docId=$('bkDoctor').value,slot=$('bkSlot').value;
-  if(!docId) return toast('กรุณาเพิ่มรายชื่อแพทย์ก่อน');
-  if(!$('bkFrom').value||!$('bkTo').value) return toast('กรุณาเลือกช่วงวันที่');
-  const from=parseDs($('bkFrom').value),to=parseDs($('bkTo').value);
+  const doctorId=$('bkDoctor').value,slot=$('bkSlot').value,from=$('bkFrom').value,to=$('bkTo').value;
+  if(!doctorId) return toast('กรุณาเพิ่มรายชื่อแพทย์ก่อน');
+  if(!from||!to) return toast('กรุณาเลือกช่วงวันที่');
   if(from>to) return toast('วันที่เริ่มต้องไม่เกินวันที่สิ้นสุด');
-  const days=[...$('bkDays').querySelectorAll('input:checked')].map(i=>+i.value);
-  if(!days.length) return toast('กรุณาเลือกวันในสัปดาห์');
-
-  const payload={};let n=0;
-  for(let d=new Date(from);d<=to;d.setDate(d.getDate()+1)){
-    const w=d.getDay();
-    if(!days.includes(w)||!SLOTS[slot].days.includes(w)) continue;
-    const k=ds(d),y=k.slice(0,4),has=slotDocs(k,slot).includes(docId);
-    if(add?!has:has) n++;
-    (payload[y]??={})[k]={[slot]:add?arrayUnion(docId):arrayRemove(docId)};
-  }
+  const weekdays=[...$('bkDays').querySelectorAll('input:checked')].map(i=>+i.value);
+  if(!weekdays.length) return toast('กรุณาเลือกวันในสัปดาห์');
   const b1=$('btnAdd'),b2=$('btnDel');b1.disabled=b2.disabled=true;
-  try{
-    await Promise.all(Object.entries(payload).map(([y,dd])=>setDoc(yearRef(y),{days:dd},{merge:true})));
-    toast(`${add?'เพิ่ม':'ลบ'}ตาราง ${docName(docId)} จำนวน ${n} วัน`);
-  }catch(err){console.error(err);toast('บันทึกตารางไม่สำเร็จ')}
-  finally{b1.disabled=b2.disabled=false}
+  await adminAction(()=>api('/api/admin/schedule/bulk',{method:'POST',body:{doctorId,slot,from,to,weekdays,add}}),
+    r=>`${add?'เพิ่ม':'ลบ'}ตาราง ${docName(doctorId)} จำนวน ${r.n} วัน`);
+  b1.disabled=b2.disabled=false;
 }
 function admMonth(n){adm.m+=n;if(adm.m<0){adm.m=11;adm.y--}if(adm.m>11){adm.m=0;adm.y++}$('bkYearLbl').textContent=`พ.ศ. ${adm.y+543}`;renderAdminCal()}
 function renderAdminCal(){
@@ -806,21 +786,20 @@ function editDay(k){
   openModal(`<h3>ตารางแพทย์ออกตรวจ</h3><p class="muted" style="margin-bottom:14px">${thDate(k)}</p>
     <div id="dayEdit">${body}</div>
     <div class="modal-actions"><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
-    <button class="btn" onclick="saveDay('${k}')">บันทึก</button></div>`,'editDay');
+    <button class="btn" id="btnSaveDay" onclick="saveDay('${k}')">บันทึก</button></div>`,'editDay');
 }
 async function saveDay(k){
   const w=parseDs(k).getDay(),slots=w===6?['sat730']:['in730','out1400'];
   const obj={};
   slots.forEach(s=>obj[s]=[...document.querySelectorAll(`#dayEdit input[data-slot="${s}"]:checked`)].map(i=>i.value));
-  try{
-    await setDoc(yearRef(k.slice(0,4)),{days:{[k]:obj}},{merge:true});
-    closeModal();toast('บันทึกตารางเรียบร้อย');
-  }catch(err){console.error(err);toast('บันทึกไม่สำเร็จ')}
+  $('btnSaveDay').disabled=true;
+  if(await adminAction(()=>api('/api/admin/schedule/day',{method:'POST',body:{date:k,slots:obj}}),'บันทึกตารางเรียบร้อย')) closeModal();
+  else if($('btnSaveDay')) $('btnSaveDay').disabled=false;
 }
 
 /* --- รายชื่อแพทย์ --- */
 function renderDocList(){
-  $('seedBox').innerHTML=doctors.length?'':`<div class="seed">
+  $('seedBox').innerHTML=doctors.length||!pubSig?'':`<div class="seed">
     <span>📦 ยังไม่มีข้อมูลแพทย์ในระบบ ต้องการสร้างข้อมูลตัวอย่าง (แพทย์ 4 ท่าน + ตาราง 2 ปี) หรือไม่?</span>
     <button class="btn accent" onclick="seedDemo()">สร้างข้อมูลตัวอย่าง</button></div>`;
   $('docList').innerHTML=doctors.map(d=>`<div class="doc-row"><span>👨‍⚕️ <b>${esc(d.name)}</b></span>
@@ -829,48 +808,24 @@ function renderDocList(){
 async function addDoctor(e){
   e.preventDefault();
   const name=$('newDoc').value.trim();if(!name) return;
-  try{await addDoc(collection(db,'doctors'),{name,order:Date.now()});$('newDoc').value='';toast('เพิ่มแพทย์เรียบร้อย')}
-  catch(err){console.error(err);toast('เพิ่มแพทย์ไม่สำเร็จ')}
+  if(await adminAction(()=>api('/api/admin/doctors',{method:'POST',body:{name}}),'เพิ่มแพทย์เรียบร้อย')) $('newDoc').value='';
 }
-async function delDoctor(id){
+function delDoctor(id){
   if(!confirm(`ต้องการลบ ${docName(id)} และตารางออกตรวจทั้งหมดของแพทย์ท่านนี้ใช่หรือไม่?`)) return;
-  try{
-    await deleteDoc(doc(db,'doctors',id));
-    const tasks=Object.entries(scheduleYears).map(([y,days])=>{
-      let changed=false;const nd={};
-      for(const k in days){nd[k]={};for(const s in days[k]){
-        const arr=days[k][s]||[],f=arr.filter(x=>x!==id);
-        if(f.length!==arr.length) changed=true;nd[k][s]=f;
-      }}
-      return changed?updateDoc(yearRef(y),{days:nd}):null;
-    }).filter(Boolean);
-    await Promise.all(tasks);
-    toast('ลบแพทย์เรียบร้อย');
-  }catch(err){console.error(err);toast('ลบไม่สำเร็จ')}
+  adminAction(()=>api(`/api/admin/doctors/${id}`,{method:'DELETE'}),'ลบแพทย์เรียบร้อย');
 }
-async function seedDemo(){
+function seedDemo(){
   if(!confirm('สร้างข้อมูลตัวอย่างแพทย์ 4 ท่าน และตารางออกตรวจปีนี้กับปีหน้า?')) return;
-  const demo=[['d1','นพ.สมชาย ใจดี'],['d2','พญ.สุดา แสงทอง'],['d3','นพ.วิทยา รักษ์ตา'],['d4','พญ.อรุณี มองไกล']];
-  const batch=writeBatch(db);
-  demo.forEach(([id,name],i)=>batch.set(doc(db,'doctors',id),{name,order:i+1}));
-  const y0=new Date().getFullYear();
-  [y0,y0+1].forEach(y=>{
-    const days={};
-    for(let d=new Date(y,0,1);d.getFullYear()===y;d.setDate(d.getDate()+1)){
-      const w=d.getDay(),k=ds(d);
-      if(w>=1&&w<=5) days[k]={in730:[demo[(w-1)%4][0],demo[w%4][0]],out1400:[demo[(w+1)%4][0]]};
-      else if(w===6) days[k]={sat730:[demo[Math.floor(d.getDate()/7)%4][0]]};
-    }
-    batch.set(yearRef(y),{days});
-  });
-  try{await batch.commit();toast('สร้างข้อมูลตัวอย่างเรียบร้อย')}
-  catch(err){console.error(err);toast('สร้างข้อมูลไม่สำเร็จ (ตรวจสอบ Rules/อีเมลแอดมิน)')}
+  adminAction(()=>api('/api/admin/seed',{method:'POST'}),'สร้างข้อมูลตัวอย่างเรียบร้อย');
 }
 
-/* ให้ปุ่มใน HTML เรียกฟังก์ชันได้ */
-Object.assign(window,{go,closeModal,startRegister,switchRegTab,pickSlot,pickCombo,askSpecify,chooseSpecify,
-  pickDoctor,patMonth,pickDate,submitForm,openAdmin,adminLogin,adminLogout,switchAdminTab,renderAppts,
-  setStatus,delAppt,renderBulkDays,setWholeYear,bulkApply,admMonth,editDay,saveDay,addDoctor,delDoctor,seedDemo});
+/* ================== เริ่มต้น ================== */
+if(API_URL.includes('YOUR-')){
+  $('setupWarn').style.display='block';
+  $('conn').className='conn off';$('connText').textContent='ยังไม่ได้ตั้งค่า';
+}else{
+  tick();
+}
 </script>
 </body>
 </html>
