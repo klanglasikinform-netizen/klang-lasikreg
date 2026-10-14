@@ -1,5 +1,5 @@
 /**
- * API ระบบนัดหมายเลสิก — เก็บข้อมูลใน GitHub repo (Private)
+ * API ระบบนัดหมายเลสิก — เก็บข้อมูลใน GitHub repo (Private) 
  * Variables: REPO_OWNER, REPO_NAME, BRANCH, ALLOWED_ORIGIN
  * Secrets  : GITHUB_TOKEN, ADMIN_USERS  เช่น {"admin":"Lasik#2025"}
  */
