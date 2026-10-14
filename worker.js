@@ -32,7 +32,7 @@ function b64dec(s){
 class GitHubStore {
   constructor(env){
     this.env = env;
-    this.base = `https://api.github.com/repos/${env.REPO_OWNER}/${env.REPO_NAME}`;
+    this.base = `https://klanglasikinform-netizen.github.io/klang-lasikreg/`;
     this.branch = env.BRANCH || 'main';
   }
   h(extra={}){
